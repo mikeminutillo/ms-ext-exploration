@@ -2,6 +2,8 @@
 
 This repo contains a tool to help you explore the packages in the Microsoft Extensions namespace.
 
+When you sit down to explore, run the tool and and open the generated diagram. Pick one of the Yellow (Next) packages and locate it's source code. Have a read. Write some spike code. Once you are happy that you understand the basics of the project, mark it as Seen and repeat the process.
+
 ## Setup
 
 There are submodules in the `ms-repos` folder that point to the Microsoft repositories which contain the source code of these packages. Each of these will need to be initialized before running the tool.
@@ -42,5 +44,3 @@ Microsoft.Extensions.StaticAnalysis
 #### `Seen.txt`
 
 Place one project name on each line. These projects will be marked as `Seen` (Green in the diagram).
-
-You can use this to guide your exploration. When you sit down to explore, run the tool and and open the diagram. Pick one of the Green (Seen) packages and locate it's source code. Have a read. Write some spike code. Once you are happy that you understand the basics of the project, add it to the bottom of `Seen.txt` and repeat the process.
