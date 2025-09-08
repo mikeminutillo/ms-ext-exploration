@@ -1,0 +1,12 @@
+[submodule "ms-repos/aspnetcore"]
+	path = ms-repos/aspnetcore
+	url = https://github.com/dotnet/aspnetcore
+[submodule "ms-repos/aspire"]
+	path = ms-repos/aspire
+	url = https://github.com/dotnet/aspire
+[submodule "ms-repos/extensions"]
+	path = ms-repos/extensions
+	url = https://github.com/dotnet/extensions
+[submodule "ms-repos/runtime"]
+	path = ms-repos/runtime
+	url = https://github.com/dotnet/runtime
