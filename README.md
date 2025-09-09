@@ -2,6 +2,8 @@
 
 This repo contains a tool to help you explore the packages in the Microsoft Extensions namespace.
 
+![Graph of Microsoft Extensions color code by what has been explored](MS Extensions Graph.png)
+
 When you sit down to explore, run the tool and and open the generated diagram. Pick one of the Yellow (Next) packages and locate it's source code. Have a read. Write some spike code. Once you are happy that you understand the basics of the project, mark it as Seen and repeat the process.
 
 ## Setup
