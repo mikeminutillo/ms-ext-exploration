@@ -1,6 +1,4 @@
-using OpenSoftware.DgmlTools;
 using OpenSoftware.DgmlTools.Analyses;
-using OpenSoftware.DgmlTools.Builders;
 using OpenSoftware.DgmlTools.Model;
 
 class InvestigationAnalysis(string[] packages) : IGraphAnalysis
@@ -56,6 +54,8 @@ class InvestigationAnalysis(string[] packages) : IGraphAnalysis
                 continue;
             }
 
+            node.Label = string.Join('.', node.Id.Split('.').Skip(2));
+
             if (contained.Except(seen).Any() is false)
             {
                 node.Properties.Add("InvestigationStatus", "Seen");
@@ -92,7 +92,7 @@ class InvestigationAnalysis(string[] packages) : IGraphAnalysis
         => new()
         {
             TargetType = "Node",
-            GroupLabel = status,
+            GroupLabel = "Investigation Status",
             Condition = [
                 new()
                 {
@@ -105,7 +105,8 @@ class InvestigationAnalysis(string[] packages) : IGraphAnalysis
                     Property = "Background",
                     Value = color
                 }
-            ]
+            ],
+            ValueLabel = status
         };
     }
 }
