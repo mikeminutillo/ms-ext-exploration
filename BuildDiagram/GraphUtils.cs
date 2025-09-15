@@ -27,8 +27,8 @@ static class GraphUtils
         //}
 
         //System.Console.WriteLine($"Project count: {processed.Count}");
-        processed = [.. from p in projects where p.Repo is "runtime" select p];
-        //processed = [.. projects];
+        //processed = [.. from p in projects where p.Repo is "runtime" select p];
+        processed = [.. projects];
 
 
         var builder = new DgmlBuilder(
