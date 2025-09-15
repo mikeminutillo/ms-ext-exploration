@@ -1,33 +1,35 @@
 using Microsoft.Extensions.FileSystemGlobbing;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 static class Utils
 {
     public static string FindSolutionFile([CallerFilePath] string? root = null) => Path.GetDirectoryName(root) switch
     {
-        null => throw new Exception("Could nt find solution file"),
+        null => throw new Exception("Could not find solution file"),
         var parentDirectory => Directory.EnumerateFiles(parentDirectory)
             .FirstOrDefault(file => Path.GetExtension(file) is ".slnx")
             ?? FindSolutionFile(parentDirectory)
     };
 
     public static string[] GetSeenProjects(string solutionFolder)
-    {
-        var seenFilePath = Path.Combine(solutionFolder, "Seen.txt");
-        if (File.Exists(seenFilePath))
+        => Path.Combine(solutionFolder, "Seen.txt") switch
         {
-            return [..File.ReadLines(seenFilePath)];
-        }
-        return [];
-    }
+            var seenFilePath => File.Exists(seenFilePath)
+                ? File.ReadAllLines(seenFilePath)
+                : []
+        };
 
-    public static Project[] GetProjects(string solutionFolder)
+    public static string[] GetIgnoredProjects(string solutionFolder)
+        => Path.Combine(solutionFolder, "Ignored.txt") switch
+        {
+            var ignoredFilePath => File.Exists(ignoredFilePath)
+                ? File.ReadAllLines(ignoredFilePath)
+                : []
+        };
+
+    public static Project[] GetProjects(string repoRootPath, string[] ignoredProjects)
     {
-        var repoRootPath = Path.Combine(solutionFolder, "ms-repos");
-
-        var repos = Directory.EnumerateDirectories(repoRootPath);
-
         var matcher = new Matcher(StringComparison.OrdinalIgnoreCase)
             .AddInclude("**/Microsoft.Extensions.*.csproj")
             .AddExclude("**/test*/**")
@@ -39,20 +41,15 @@ static class Utils
             .AddExclude("**/*Test*.csproj")
             ;
 
-        var ignoreFilePath = Path.Combine(solutionFolder, "Ignored.txt");
-        if (File.Exists(ignoreFilePath))
+        foreach(var ignored in ignoredProjects)
         {
-            foreach (var ignored in File.ReadLines(ignoreFilePath))
-            {
-                System.Console.WriteLine($"Ignoring {ignored}");
-                matcher.AddExclude($"**/{ignored.Trim()}.csproj");
-            }
+            matcher.AddExclude($"**/{ignored.Trim()}.csproj");
         }
 
         return
         [
             ..
-            from repoPath in repos.AsParallel()
+            from repoPath in Directory.EnumerateDirectories(repoRootPath).AsParallel()
             let repo = Path.GetFileName(repoPath)
             from file in matcher.GetResultsInFullPath(repoPath).AsParallel()
             let project = new Project(file, repo)
@@ -63,18 +60,18 @@ static class Utils
 
     public static string ToNodeId(string package) => $"node{string.Join(null, package.Split('.').Skip(2))}";
 
-    public static string[] GetDependencies(string projectPath) => [
-        ..
-            from line in File.ReadLines(projectPath)
-            let isProjectReference = line.Contains("ProjectReference")
-            let isPackageReference = line.Contains("PackageReference") || line.Contains("Reference")
-            where isPackageReference || isPackageReference
-            let match = Regex.Match(line, @"Include=\""([^""]*)\""")
-            where match.Success
-            let depPath = match.Result("$1").Replace("$", "")
-            let depName = isProjectReference
-                ? Path.GetFileNameWithoutExtension(depPath)
-                : Path.GetFileName(depPath)
-            select depName
-    ];
+    public static string[] GetDependencies(string projectPath) => XDocument.Load(projectPath) switch
+    {
+        var doc => [
+            .. Includes(doc, "Reference").Select(Path.GetFileName)!,
+            .. Includes(doc, "PackageReference").Select(Path.GetFileName)!,
+            .. Includes(doc, "ProjectReference").Select(Path.GetFileNameWithoutExtension)!
+        ]
+    };
+
+    private static IEnumerable<string> Includes(XDocument doc, string elementName)
+        => doc.Descendants(elementName)
+            .Attributes("Include")
+            .Select(x => x.Value)
+            .Select(x => x.Replace("$", ""));
 }
